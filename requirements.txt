@@ -1,0 +1,3 @@
+requests
+subprocess32
+colorama
