@@ -1,10 +1,7 @@
 import os
 import subprocess
-import logging
 import sys
-
-# Logging setup
-logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
+import argparse
 
 def check_command(command):
     """Check if a command is available in the system."""
@@ -15,50 +12,52 @@ def ensure_commands_exist(commands):
     """Ensure that all required commands are available."""
     missing = [cmd for cmd in commands if not check_command(cmd)]
     if missing:
-        logging.error(f"Missing required commands: {', '.join(missing)}")
+        print(f"Missing required commands: {', '.join(missing)}")
         sys.exit(1)
 
 def create_directory(domain):
     """Create directory for storing subdomains."""
-    output_dir = os.path.join('./output', domain)
+    output_dir = os.path.join('./output', domain, 'subdomains')
     os.makedirs(output_dir, exist_ok=True)
-    logging.info(f"Output directory: {output_dir}")
     return output_dir
 
 def run_subdomain_tools(domain, output_dir):
     """Run subdomain enumeration tools."""
-    subdomains_file = os.path.join(output_dir, 'subdomains.txt')
+    subfinder_file = os.path.join(output_dir, 'subfinder-subdomains.txt')
+    assetfinder_file = os.path.join(output_dir, 'assetfinder-subdomains.txt')
     subdomains = set()
 
     # Run Subfinder
     try:
-        logging.info("Running Subfinder...")
-        output = subprocess.check_output(['subfinder', '-d', domain, '-silent'], text=True).splitlines()
-        subdomains.update(output)
+        subfinder_output = subprocess.check_output(['subfinder', '-d', domain, '-silent'], text=True).splitlines()
+        with open(subfinder_file, 'w') as f:
+            f.write("\n".join(subfinder_output))
+        subdomains.update(subfinder_output)
     except subprocess.CalledProcessError as e:
-        logging.error(f"Subfinder failed: {e}")
+        print(f"Subfinder failed: {e}")
 
     # Run Assetfinder
     try:
-        logging.info("Running Assetfinder...")
-        output = subprocess.check_output(['assetfinder', '--subs-only', domain], text=True).splitlines()
-        subdomains.update(output)
+        assetfinder_output = subprocess.check_output(['assetfinder', '--subs-only', domain], text=True).splitlines()
+        with open(assetfinder_file, 'w') as f:
+            f.write("\n".join(assetfinder_output))
+        subdomains.update(assetfinder_output)
     except subprocess.CalledProcessError as e:
-        logging.error(f"Assetfinder failed: {e}")
+        print(f"Assetfinder failed: {e}")
 
     # Save unique subdomains
-    with open(subdomains_file, 'w') as f:
+    all_subdomains_file = os.path.join(output_dir, 'subdomains.txt')
+    with open(all_subdomains_file, 'w') as f:
         f.write("\n".join(sorted(subdomains)))
-    logging.info(f"Subdomains saved to {subdomains_file}")
 
-    return subdomains_file
+    return all_subdomains_file
 
 def main():
-    if len(sys.argv) < 2:
-        logging.error("Usage: python subfinder.py <domain>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(description="Subdomain enumeration tool")
+    parser.add_argument('domain', help="Target domain for subdomain enumeration")
+    args = parser.parse_args()
 
-    domain = sys.argv[1]
+    domain = args.domain
 
     # Ensure required tools are installed
     required_commands = ['subfinder', 'assetfinder']
@@ -67,7 +66,7 @@ def main():
     # Create output directory and run tools
     output_dir = create_directory(domain)
     run_subdomain_tools(domain, output_dir)
-    logging.info("Subdomain enumeration completed!")
+    print("Subdomain enumeration completed!")
 
 if __name__ == '__main__':
     main()
