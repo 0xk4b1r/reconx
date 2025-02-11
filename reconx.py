@@ -5,7 +5,7 @@ import argparse
 import logging
 
 RECONX_HACKS = os.path.expanduser('./hacks/')
-RECONX_OUTPUT_PATH = os.path.expanduser('./output/')
+RECONX_OUTPUT_PATH = os.path.expanduser('test/output/')
 
 def logo():
     print('''
@@ -42,6 +42,8 @@ def main():
     parser.add_argument('--urls', action='store_true', help="Run the urls_enum.py tool.")
     parser.add_argument('--nmap', action='store_true', help="Run the nmap.py tool.")
     parser.add_argument('--web', action='store_true', help="Run the web_enum.py tool.")
+    parser.add_argument('--js', action='store_true', help="Run the js_scan.py tool.")
+    parser.add_argument('--sens', action='store_true', help="Run the sens.py tool.")
     parser.add_argument('--full', action='store_true', help="Run all tools (complete scan).")
     parser.add_argument('-d', '--domain', required=True, help="Target domain for scanning.")
     args = parser.parse_args()
@@ -64,9 +66,15 @@ def main():
     elif args.web:
         logging.info(f"Running Web enumeration for domain: {domain}")
         run_tool('web_enum.py', domain)
+    elif args.js:
+        logging.info(f"Running Web enumeration for domain: {domain}")
+        run_tool('js_scan.py', domain)
+    elif args.sens:
+        logging.info(f"Running sensitive_info_enum enumeration for domain: {domain}")
+        run_tool('sensitive_info_enum.py', domain)
     elif args.full:
         logging.info(f"Running full scan for domain: {domain}")
-        tools = ['subfinder.py', 'port_scanner.py', 'urls_enum.py', 'nmap.py', 'web_enum.py']
+        tools = ['subfinder.py', 'port_scanner.py', 'urls_enum.py', 'nmap.py', 'web_enum.py', 'js_scan.py']
         for tool in tools:
             run_tool(tool, domain)
     else:

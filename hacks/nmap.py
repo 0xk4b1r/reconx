@@ -18,7 +18,7 @@ def ensure_commands_exist(commands):
 
 def create_directory(domain):
     """Create directory for storing nmap output."""
-    output_dir = os.path.join('./output', domain)
+    output_dir = os.path.join('./test/output', domain)
     os.makedirs(output_dir, exist_ok=True)
     return output_dir
 

@@ -21,7 +21,7 @@ def ensure_commands_exist(commands):
 
 def create_directory(domain):
     """Create directory for storing port scan results."""
-    output_dir = os.path.join('./output', domain)
+    output_dir = os.path.join('./test/output', domain)
     os.makedirs(output_dir, exist_ok=True)
     return output_dir
 
@@ -76,7 +76,7 @@ def scan_with_nikto(subdomains_file, output_dir):
 
 
 def main(domain):
-    subdomains_file = os.path.join('./output',domain, 'subdomains.txt')
+    subdomains_file = os.path.join('./test/output',domain, 'subdomains.txt')
 
     output_dir = create_directory(domain)
     # enumerate_web_technologies(subdomains_file, output_dir)

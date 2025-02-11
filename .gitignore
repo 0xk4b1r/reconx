@@ -1,5 +1,5 @@
 .idea
 .venv
 venv
-output
-reconage-bash
+test/output
+test/reconage-bash
