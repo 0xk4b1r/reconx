@@ -1,59 +1,111 @@
-# Use the official Ubuntu image as the base
-FROM ubuntu:latest
+FROM ubuntu:22.04
 
-# Set the working directory
-WORKDIR /root/reconage
+LABEL maintainer="@0xk4b1r"
+LABEL version="1.0.0"
+LABEL description="Docker image for reconX - A comprehensive reconnaissance framework"
 
-# Update package lists and install required packages
-RUN apt-get update
-RUN apt update
+# Prevent interactive prompts during installation
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get install -y \
+# Set working directory
+WORKDIR /opt/reconx
+
+# Copy only the installation script first to leverage Docker caching
+COPY install.py /opt/reconx/
+
+# Install essential packages and update system
+RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
-    python3-venv \
+    python3-dev \
     git \
-    curl \
-    jq \
     wget \
+    curl \
+    unzip \
     tar \
-    npm \
-    nodejs \
-    ruby \
-    vim \
-    nano \
+    build-essential \
     libpcap-dev \
+    sudo \
+    nmap \
+    whatweb \
+    nikto \
+    masscan \
+    golang \
+    nodejs \
+    npm \
+    ruby \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Go programming language and clean up
-RUN wget https://go.dev/dl/go1.22.4.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.22.4.linux-amd64.tar.gz && \
-    rm go1.22.4.linux-amd64.tar.gz
+# Install Chrome for Aquatone
+RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb \
+    && apt-get update \
+    && apt-get install -y ./google-chrome-stable_current_amd64.deb \
+    && rm google-chrome-stable_current_amd64.deb \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set Go environment variables
-ENV GOROOT=/usr/local/go
+# Set up Go environment
+ENV GOROOT=/usr/lib/go
 ENV GOPATH=/root/go
-ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+ENV PATH=$PATH:/usr/lib/go/bin:/root/go/bin
 
-# Create and activate a Python virtual environment
-RUN python3 -m venv /root/reconage/venv && \
-    /root/reconage/venv/bin/pip install --upgrade pip
+# Create directory structure
+RUN mkdir -p /opt/reconx/modules \
+    && mkdir -p /opt/reconx/test/output
 
-# Set the virtual environment to be active for all following commands
-ENV PATH="/root/reconage/venv/bin:$PATH"
+# Install Python dependencies
+RUN pip3 install --upgrade pip \
+    && pip3 install requests \
+    truffleHog \
+    sublist3r \
+    uro \
+    corscanner \
+    cors \
+    dnsgen \
+    jsbeautifier \
+    arjun \
+    py-altdns \
+    wfuzz \
+    httpx
 
-# Copy the requirements file and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Go tools
+RUN go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest \
+    && go install github.com/tomnomnom/assetfinder@latest \
+    && go install github.com/projectdiscovery/httpx/cmd/httpx@latest \
+    && go install github.com/tomnomnom/waybackurls@latest \
+    && go install github.com/lc/gau/v2/cmd/gau@latest \
+    && go install github.com/projectdiscovery/naabu/v2/cmd/naabu@latest \
+    && go install github.com/lc/subjs@latest
 
-# Mount the tools directory as a volume so that it persists between builds
-VOLUME ["/root/reconage/tools"]
+# Install Aquatone
+RUN wget -q https://github.com/michenriksen/aquatone/releases/download/v1.7.0/aquatone_linux_amd64_1.7.0.zip \
+    && unzip aquatone_linux_amd64_1.7.0.zip -d /tmp/aquatone \
+    && mv /tmp/aquatone/aquatone /usr/local/bin/ \
+    && chmod +x /usr/local/bin/aquatone \
+    && rm -rf /tmp/aquatone aquatone_linux_amd64_1.7.0.zip
 
-# Copy the install.py script into the container
-COPY install.py .
+# Install Xray
+RUN wget -q https://github.com/chaitin/xray/releases/download/1.9.4/xray_linux_amd64.zip \
+    && unzip xray_linux_amd64.zip -d /tmp/xray \
+    && mv /tmp/xray/xray_linux_amd64 /usr/local/bin/xray \
+    && chmod +x /usr/local/bin/xray \
+    && rm -rf /tmp/xray xray_linux_amd64.zip
 
-# Run the install script (this will only run if install.py or the environment changes)
-RUN python install.py
+# Copy the reconX framework files
+COPY . /opt/reconx/
 
-# Set the default command to hacks
-CMD ["bash"]
+# Create alias for reconx
+RUN echo 'alias reconx="python3 /opt/reconx/reconx.py"' >> /root/.bashrc
+
+# Set permissions
+RUN chmod +x /opt/reconx/reconx.py
+
+# Create volume for output
+VOLUME ["/opt/reconx/test/output"]
+
+# Set entrypoint
+ENTRYPOINT ["/bin/bash", "-c"]
+
+# Default command (shows help)
+CMD ["python3 /opt/reconx/reconx.py --help"]
