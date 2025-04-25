@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-port_scanner.py - Port scanning module for reconX
+portscan.py - Port scanning module for reconX
 
 This module performs port scanning on discovered subdomains using naabu
 and provides options for customizing scan parameters.
@@ -278,7 +278,7 @@ def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Port scanning module for reconX",
-        epilog="Example: python3 port_scanner.py example.com --ports 80,443,8080-8090"
+        epilog="Example: python3 portscan.py example.com --ports 80,443,8080-8090"
     )
 
     parser.add_argument('domain', help="Target domain for port scanning")

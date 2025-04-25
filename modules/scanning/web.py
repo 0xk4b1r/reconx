@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-web_enum.py - Web enumeration module for reconX
+web.py - Web enumeration module for reconX
 
 This module performs comprehensive web enumeration on discovered subdomains, 
 including technology detection, screenshot capturing, and vulnerability scanning.
@@ -654,7 +654,7 @@ def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Web enumeration module for reconX",
-        epilog="Example: python3 web_enum.py example.com --screenshot --whatweb"
+        epilog="Example: python3 web.py example.com --screenshot --whatweb"
     )
 
     parser.add_argument('domain', help="Target domain for web enumeration")

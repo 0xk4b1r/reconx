@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-urls_enum.py - URL enumeration module for reconX
+urls.py - URL enumeration module for reconX
 
 This module discovers URLs associated with target subdomains using various
 tools like waybackurls, gau, hakrawler, and more. It collects historical
@@ -512,7 +512,7 @@ def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="URL enumeration module for reconX",
-        epilog="Example: python3 urls_enum.py example.com --tools waybackurls,gau"
+        epilog="Example: python3 urls.py example.com --tools waybackurls,gau"
     )
 
     parser.add_argument('domain', help="Target domain for URL enumeration")

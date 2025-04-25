@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-subfinder.py - Subdomain enumeration module for reconX
+subdomain.py - Subdomain enumeration module for reconX
 
 This module performs comprehensive subdomain enumeration using multiple tools
 and techniques, including Subfinder, Assetfinder, and optional additional sources.
@@ -342,7 +342,7 @@ def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Subdomain enumeration tool for reconX",
-        epilog="Example: python3 subfinder.py example.com --threads 20"
+        epilog="Example: python3 subdomain.py example.com --threads 20"
     )
 
     parser.add_argument('domain', help="Target domain for subdomain enumeration")

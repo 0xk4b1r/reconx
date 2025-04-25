@@ -4,7 +4,7 @@ nmap.py - Nmap scanning module for reconX
 
 This module performs detailed port scanning and service fingerprinting using Nmap
 on previously discovered open ports. It processes the port scan results from
-the port_scanner.py module and provides comprehensive information about services
+the portscan.py module and provides comprehensive information about services
 running on the target infrastructure.
 
 Author: @0xk4b1r

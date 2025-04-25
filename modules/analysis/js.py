@@ -14,11 +14,16 @@ import time
 from pathlib import Path
 from typing import List, Optional
 
-# Configuration paths
+# Configuration paths - updated for the new module structure
 RECONX_MODULES_BASE = Path('./modules/').resolve()
 RECONX_MODULES_DISCOVERY = RECONX_MODULES_BASE / 'discovery'
 RECONX_MODULES_SCANNING = RECONX_MODULES_BASE / 'scanning'
 RECONX_MODULES_ANALYSIS = RECONX_MODULES_BASE / 'analysis'
+
+# Ensure module directories exist to avoid errors
+RECONX_MODULES_DISCOVERY.mkdir(exist_ok=True)
+RECONX_MODULES_SCANNING.mkdir(exist_ok=True)
+RECONX_MODULES_ANALYSIS.mkdir(exist_ok=True)
 RECONX_OUTPUT_PATH = Path('./test/output/').resolve()
 VERSION = "1.0.0"
 
@@ -45,11 +50,11 @@ def display_banner() -> None:
     """Display the reconX banner."""
     print('''
     __________
-    \\______   \\ ____   ____  ____   __ _____     ____   ____
-    |       _// __ \\_/ ___\\/  _ \\ /    \\__  \\   / ___\\_/ __\\
-    |    |   \\  ___/\\  \\__(  <_> )   |  \\/ __ \\_/ /_/  >  ___/
-    |____|_  /\\___  >\\___  >____/|___|  (____  /\\___  / \\___  >
-            \\/     \\/     \\/           \\/     \\//_____/      \\/
+    \______   \ ____   ____  ____   __ _____     ____   ____
+    |       _// __ \_/ ___\/  _ \ /    \__  \   / ___\_/ __  \\
+    |    |   \  ___/\  \__(  <_> )   |  \/ __ \_/ /_/  >  ___/
+    |____|_  /\___  >\___  >____/|___|  (____  /\___  / \___  >
+            \/     \/     \/           \/     \//_____/      \/
                 reconX v{} by @0xk4b1r - Comprehensive Reconnaissance Framework
     '''.format(VERSION))
 
@@ -70,37 +75,13 @@ def ensure_directories_exist(output_path: Optional[Path] = None) -> Path:
     return actual_output_path
 
 
-def get_tool_path(tool_name: str) -> Path:
-    """
-    Get the path to a tool based on its name.
-
-    Args:
-        tool_name: Name of the tool script
-
-    Returns:
-        Path: Path to the tool
-    """
-    # Map tool names to their locations in the new directory structure
-    tool_paths = {
-        'subdomain.py': RECONX_MODULES_DISCOVERY / 'subdomain.py',
-        'portscan.py': RECONX_MODULES_DISCOVERY / 'portscan.py',
-        'urls.py': RECONX_MODULES_DISCOVERY / 'urls.py',
-        'nmap.py': RECONX_MODULES_SCANNING / 'nmap.py',
-        'web.py': RECONX_MODULES_SCANNING / 'web.py',
-        'js.py': RECONX_MODULES_ANALYSIS / 'js.py',
-        'sensitive.py': RECONX_MODULES_ANALYSIS / 'sensitive.py'
-    }
-
-    return tool_paths.get(tool_name)
-
-
 def run_tool(tool: str, domain: str, timeout: Optional[int] = None,
              threads: int = 10, output_dir: Optional[Path] = None) -> bool:
     """
     Execute a specific tool with the given domain.
 
     Args:
-        tool: Name of the tool script to run
+        tool: Name of the tool script to run (including path)
         domain: Target domain for scanning
         timeout: Optional timeout in seconds for the tool execution
         threads: Number of threads for concurrent operations
@@ -111,7 +92,7 @@ def run_tool(tool: str, domain: str, timeout: Optional[int] = None,
     """
     tool_path = get_tool_path(tool)
 
-    if not tool_path or not tool_path.exists():
+    if not tool_path.exists():
         logger.error(f"Tool {tool} not found at {tool_path}")
         return False
 
@@ -156,6 +137,63 @@ def run_tool(tool: str, domain: str, timeout: Optional[int] = None,
     except Exception as e:
         logger.error(f"Unexpected error running {tool}: {str(e)}")
         return False
+
+
+def get_tool_path(tool: str) -> Path:
+    """
+    Determine the correct path for a tool based on its category.
+
+    Args:
+        tool: Name of the tool script (e.g., 'subdomain.py')
+
+    Returns:
+        Path: Full path to the tool
+    """
+    # First check if original files exist (for backward compatibility)
+    original_path = RECONX_MODULES_BASE / tool
+    if original_path.exists():
+        return original_path
+
+    # Map tools to their directories
+    discovery_tools = ['subdomain.py', 'portscan.py', 'urls.py']
+    scanning_tools = ['nmap.py', 'web.py']
+    analysis_tools = ['js.py', 'sensitive.py']
+
+    # Check in new directory structure
+    if tool in discovery_tools:
+        path = RECONX_MODULES_DISCOVERY / tool
+        if path.exists():
+            return path
+    elif tool in scanning_tools:
+        path = RECONX_MODULES_SCANNING / tool
+        if path.exists():
+            return path
+    elif tool in analysis_tools:
+        path = RECONX_MODULES_ANALYSIS / tool
+        if path.exists():
+            return path
+
+    # Check for old file naming convention if new files aren't found
+    old_to_new_mapping = {
+        'subdomain.py': 'subfinder.py',
+        'portscan.py': 'port_scanner.py',
+        'urls.py': 'urls_enum.py',
+        'nmap.py': 'nmap.py',
+        'web.py': 'web_enum.py',
+        'js.py': 'js_scan.py',
+        'sensitive.py': 'sensitive_info_enum.py',
+    }
+
+    # Try to find the tool with its old name
+    if tool in old_to_new_mapping:
+        old_name = old_to_new_mapping[tool]
+        old_path = RECONX_MODULES_BASE / old_name
+        if old_path.exists():
+            logger.debug(f"Using legacy file {old_name} instead of {tool}")
+            return old_path
+
+    # Fallback to base modules directory
+    return RECONX_MODULES_BASE / tool
 
 
 def parse_arguments() -> argparse.Namespace:

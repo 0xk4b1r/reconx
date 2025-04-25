@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sensitive_info_enum.py - Sensitive information enumeration module for reconX
+sensitive.py - Sensitive information enumeration module for reconX
 
 This module looks for exposed sensitive information, files, and directories
 that might contain valuable data or indicate security issues. It can discover
@@ -654,7 +654,7 @@ def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
         description="Sensitive information enumeration module for reconX",
-        epilog="Example: python3 sensitive_info_enum.py example.com --threads 20"
+        epilog="Example: python3 sensitive.py example.com --threads 20"
     )
 
     parser.add_argument('domain', help="Target domain for sensitive information enumeration")

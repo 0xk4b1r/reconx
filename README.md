@@ -141,13 +141,13 @@ reconX consists of the following modules:
 
 | Module | Description | Main Tools |
 |--------|-------------|------------|
-| **subfinder.py** | Subdomain discovery | subfinder, assetfinder, amass |
-| **port_scanner.py** | Port scanning | naabu, masscan |
-| **urls_enum.py** | URL and endpoint discovery | waybackurls, gau, hakrawler |
-| **nmap.py** | Service fingerprinting | nmap |
-| **web_enum.py** | Web technology identification and screenshots | whatweb, aquatone, nikto |
-| **js_scan.py** | JavaScript analysis and secrets discovery | subjs, custom analysis |
-| **sensitive_info_enum.py** | Discover sensitive files and info | custom checks, httpx |
+| **discovery/subdomain.py** | Subdomain discovery | subfinder, assetfinder, amass |
+| **discovery/portscan.py** | Port scanning | naabu, masscan |
+| **discovery/urls.py** | URL and endpoint discovery | waybackurls, gau, hakrawler |
+| **scanning/nmap.py** | Service fingerprinting | nmap |
+| **scanning/web.py** | Web technology identification and screenshots | whatweb, aquatone, nikto |
+| **analysis/js.py** | JavaScript analysis and secrets discovery | subjs, custom analysis |
+| **analysis/sensitive.py** | Discover sensitive files and info | custom checks, httpx |
 
 ## Workflows
 
@@ -164,13 +164,16 @@ reconX can be used in various workflows:
 .
 ├── reconx.py                # Main script
 ├── modules/                 # Module directory
-│   ├── subfinder.py         # Subdomain enumeration
-│   ├── port_scanner.py      # Port scanning
-│   ├── urls_enum.py         # URL enumeration
-│   ├── nmap.py              # Nmap scanning
-│   ├── web_enum.py          # Web enumeration
-│   ├── js_scan.py           # JavaScript scanning
-│   └── sensitive_info_enum.py # Sensitive info scanning
+│   ├── discovery/           # Discovery modules
+│   │   ├── subdomain.py     # Subdomain enumeration
+│   │   ├── portscan.py      # Port scanning
+│   │   └── urls.py          # URL enumeration
+│   ├── scanning/            # Scanning modules
+│   │   ├── nmap.py          # Nmap scanning
+│   │   └── web.py           # Web enumeration
+│   └── analysis/            # Analysis modules
+│       ├── js.py            # JavaScript scanning
+│       └── sensitive.py     # Sensitive info scanning
 ├── install.py               # Installation script
 ├── config.py                # Configuration file
 └── test/                    # Output directory
