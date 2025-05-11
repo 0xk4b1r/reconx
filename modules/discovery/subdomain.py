@@ -50,7 +50,15 @@ class SubdomainEnumerator:
             timeout: Timeout in seconds for each enumeration method
         """
         self.domain = domain
-        self.output_dir = output_dir or DEFAULT_OUTPUT_DIR / domain
+        
+        # Handle output directory properly
+        if output_dir:
+            # If output_dir is provided, use it and append domain
+            self.output_dir = output_dir / domain
+        else:
+            # Otherwise use the default
+            self.output_dir = DEFAULT_OUTPUT_DIR / domain
+            
         self.wordlist = wordlist
         self.threads = threads
         self.timeout = timeout
@@ -58,6 +66,9 @@ class SubdomainEnumerator:
 
         # Ensure output directory exists
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Log the actual output directory being used
+        logger.info(f"Using output directory: {self.output_dir}")
 
         # Set up output files
         self.subfinder_results = self.output_dir / 'subfinder-results.txt'
@@ -373,6 +384,7 @@ def main() -> int:
     output_dir = None
     if args.output:
         output_dir = Path(args.output)
+        logger.debug(f"Using custom output directory: {output_dir}")
 
     # Set up wordlist if specified
     wordlist = None
@@ -393,6 +405,11 @@ def main() -> int:
         )
 
         subdomains = enumerator.enumerate()
+        
+        # Add more verbose output about where files were saved
+        logger.info(f"Final results saved to: {enumerator.final_results}")
+        logger.info(f"Metadata saved to: {enumerator.metadata_file}")
+        
         return 0 if subdomains else 1
 
     except KeyboardInterrupt:
@@ -401,7 +418,7 @@ def main() -> int:
     except Exception as e:
         logger.error(f"Unhandled exception: {e}")
         return 1
-
+    
 
 if __name__ == '__main__':
     sys.exit(main())

@@ -53,7 +53,15 @@ class URLEnumerator:
             include_js: Whether to include JavaScript files
         """
         self.domain = domain
-        self.output_dir = output_dir or Path('./test/output') / domain
+        
+        # Handle output directory properly
+        if output_dir:
+            # If output_dir is provided, use it and append domain
+            self.output_dir = output_dir / domain
+        else:
+            # Otherwise use the default
+            self.output_dir = Path('./test/output') / domain
+            
         self.threads = threads
         self.timeout = timeout
         self.tools = tools or ['waybackurls', 'gau', 'hakrawler']
@@ -62,6 +70,9 @@ class URLEnumerator:
 
         # Ensure output directory exists
         self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Log the actual output directory being used
+        logger.info(f"Using output directory: {self.output_dir}")
 
         # Set up input and output files
         self.subdomains_file = self.output_dir / 'subdomains.txt'
@@ -89,7 +100,7 @@ class URLEnumerator:
             'tool_stats': {},
             'errors': []
         }
-
+    
     def check_command(self, command: str) -> bool:
         """
         Check if a command is available in the system.
@@ -132,14 +143,24 @@ class URLEnumerator:
         """
         if not self.subdomains_file.exists():
             logger.error(f"Subdomains file not found: {self.subdomains_file}")
+            logger.error("Make sure subdomain enumeration was run first and check your output path")
             return []
 
-        with open(self.subdomains_file, 'r') as f:
-            subdomains = [line.strip() for line in f if line.strip()]
+        try:
+            with open(self.subdomains_file, 'r') as f:
+                subdomains = [line.strip() for line in f if line.strip()]
 
-        logger.info(f"Loaded {len(subdomains)} subdomains for URL enumeration")
-        self.stats['total_subdomains'] = len(subdomains)
-        return subdomains
+            logger.info(f"Loaded {len(subdomains)} subdomains for URL enumeration")
+            self.stats['total_subdomains'] = len(subdomains)
+            
+            # If no subdomains found in the file
+            if not subdomains:
+                logger.warning(f"Subdomain file exists but contains no data: {self.subdomains_file}")
+                
+            return subdomains
+        except Exception as e:
+            logger.error(f"Error loading subdomains file: {e}")
+            return []
 
     def run_waybackurls(self, subdomain: str) -> Set[str]:
         """
@@ -546,16 +567,19 @@ def main() -> int:
     output_dir = None
     if args.output:
         output_dir = Path(args.output)
+        logger.debug(f"Using custom output directory: {output_dir}")
 
     # Parse tools list if specified
     tools = None
     if args.tools:
         tools = [t.strip() for t in args.tools.split(',')]
+        logger.debug(f"Using specified tools: {tools}")
 
     # Parse filter extensions if specified
     filter_extensions = None
     if args.filter:
         filter_extensions = [ext.strip() for ext in args.filter.split(',')]
+        logger.debug(f"Filtering for extensions: {filter_extensions}")
 
     try:
         # Create and run the URL enumerator
@@ -569,7 +593,20 @@ def main() -> int:
             include_js=not args.no_js
         )
 
+        # Check if the subdomains file exists before proceeding
+        if not enumerator.subdomains_file.exists():
+            logger.error(f"Subdomains file not found: {enumerator.subdomains_file}")
+            logger.error("Run subdomain enumeration first or check the output directory path")
+            return 1
+
         urls = enumerator.run_enumeration()
+        
+        # Add more verbose output about where files were saved
+        logger.info(f"URLs saved to: {enumerator.urls_file}")
+        if enumerator.include_js:
+            logger.info(f"JavaScript URLs saved to: {enumerator.js_urls_file}")
+        logger.info(f"Metadata saved to: {enumerator.metadata_file}")
+        
         return 0 if urls else 1
 
     except KeyboardInterrupt:
@@ -577,6 +614,7 @@ def main() -> int:
         return 130
     except Exception as e:
         logger.error(f"Unhandled exception: {e}")
+        logger.debug(f"Exception details: {str(e)}", exc_info=True)
         return 1
 
 

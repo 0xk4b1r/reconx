@@ -50,7 +50,7 @@ def display_banner() -> None:
     |    |   \\  ___/\\  \\__(  <_> )   |  \\/ __ \\_/ /_/  >  ___/
     |____|_  /\\___  >\\___  >____/|___|  (____  /\\___  / \\___  >
             \\/     \\/     \\/           \\/     \\//_____/      \\/
-                reconX v{} by @0xk4b1r - Comprehensive Reconnaissance Framework
+                    reconX v{} by @0xk4b1r
     '''.format(VERSION))
 
 
@@ -127,8 +127,15 @@ def run_tool(tool: str, domain: str, timeout: Optional[int] = None,
         if threads:
             cmd.extend(["--threads", str(threads)])
         if output_dir:
+            # Make sure we're explicitly passing the output directory
             cmd.extend(["--output", str(output_dir)])
+            
+            # Ensure the domain-specific output directory exists
+            domain_output_dir = output_dir / domain
+            domain_output_dir.mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Created domain output directory: {domain_output_dir}")
 
+        logger.debug(f"Executing command: {' '.join(cmd)}")
         process = subprocess.run(
             cmd,
             check=True,
